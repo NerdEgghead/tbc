@@ -15,6 +15,7 @@ func init() {
 	core.AddItemSet(&ItemSetMalorne)
 	core.AddItemSet(&ItemSetNordrassil)
 	core.AddItemSet(&ItemSetThunderheart)
+	core.AddItemSet(&ItemSetThunderheartFeral)
 }
 
 var ItemSetMalorne = core.ItemSet{
@@ -65,6 +66,18 @@ var ItemSetThunderheart = core.ItemSet{
 		},
 		4: func(agent core.Agent) {
 			// handled in starfire.go in template construction
+		},
+	},
+}
+
+var ItemSetThunderheartFeral = core.ItemSet{
+	Name: "Thunderheart Harness",
+	Bonuses: map[int32]core.ApplyEffect{
+		2: func(agent core.Agent) {
+			// handled in mangle.go in template construction
+		},
+		4: func(agent core.Agent) {
+			// handled in rip.go and bite.go in template construction
 		},
 	},
 }

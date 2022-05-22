@@ -15,6 +15,7 @@ type Druid struct {
 
 	RebirthUsed bool
 	CatForm     bool
+	Wolfshead   bool
 
 	FaerieFire  *core.Spell
 	Hurricane   *core.Spell
@@ -24,6 +25,7 @@ type Druid struct {
 	Starfire6   *core.Spell
 	Starfire8   *core.Spell
 	Wrath       *core.Spell
+	Powershift  *core.Spell
 
 	InsectSwarmDot *core.Dot
 	MoonfireDot    *core.Dot
@@ -51,6 +53,7 @@ func (druid *Druid) AddRaidBuffs(raidBuffs *proto.RaidBuffs) {
 }
 
 const ravenGoddessItemID = 32387
+const wolfsheadItemID = 8345
 
 func (druid *Druid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 	if druid.Talents.MoonkinForm { // assume if you have moonkin talent you are using it.
@@ -74,14 +77,23 @@ func (druid *Druid) AddPartyBuffs(partyBuffs *proto.PartyBuffs) {
 }
 
 func (druid *Druid) Init(sim *core.Simulation) {
-	druid.registerFaerieFireSpell(sim)
-	druid.registerHurricaneSpell(sim)
-	druid.registerInsectSwarmSpell(sim)
-	druid.registerMoonfireSpell(sim)
-	druid.registerRebirthSpell(sim)
-	druid.Starfire8 = druid.newStarfireSpell(sim, 8)
-	druid.Starfire6 = druid.newStarfireSpell(sim, 6)
-	druid.registerWrathSpell(sim)
+	if druid.CatForm {
+		druid.registerPowershiftSpell(sim)
+		druid.registerRipSpell(sim)
+	} else {
+		druid.registerFaerieFireSpell(sim)
+		druid.registerHurricaneSpell(sim)
+		druid.registerInsectSwarmSpell(sim)
+		druid.registerMoonfireSpell(sim)
+		druid.registerRebirthSpell(sim)
+		druid.Starfire8 = druid.newStarfireSpell(sim, 8)
+		druid.Starfire6 = druid.newStarfireSpell(sim, 6)
+		druid.registerWrathSpell(sim)
+	}
+
+	if druid.CatForm {
+		druid.DelayCooldownsForArmorDebuffs(sim)
+	}
 }
 
 func (druid *Druid) Reset(sim *core.Simulation) {
@@ -99,6 +111,7 @@ func New(char core.Character, selfBuffs SelfBuffs, talents proto.DruidTalents) *
 		Talents:     talents,
 		RebirthUsed: false,
 		CatForm:     false,
+		Wolfshead:   false,
 	}
 	druid.EnableManaBar()
 
@@ -125,6 +138,14 @@ func New(char core.Character, selfBuffs SelfBuffs, talents proto.DruidTalents) *
 			return meleeCrit + (agility/25)*core.MeleeCritRatingPerCritChance
 		},
 	})
+
+	// Check if Wolfshead Helm is equipped
+	for _, e := range druid.Equip {
+		if e.ID == wolfsheadItemID {
+			druid.Wolfshead = true
+			break
+		}
+	}
 
 	return druid
 }

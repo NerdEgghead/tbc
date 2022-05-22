@@ -54,14 +54,14 @@ func NewFeralDruid(character core.Character, options proto.Player) *FeralDruid {
 
 	// Set up base paw weapon. Assume that Predatory Instincts is a primary rather than secondary modifier for now, but this needs to confirmed!
 	primaryModifier := 1 + 0.02*float64(cat.Talents.PredatoryInstincts)
-	critMultiplier := cat.MeleeCritMultiplier(primaryModifier, 0)
+	cat.critMultiplier = cat.MeleeCritMultiplier(primaryModifier, 0)
 	basePaw := core.Weapon{
 		BaseDamageMin:        43.5,
 		BaseDamageMax:        66.5,
 		SwingSpeed:           1.0,
 		NormalizedSwingSpeed: 1.0,
 		SwingDuration:        time.Duration(1.0 * float64(time.Second)),
-		CritMultiplier:       critMultiplier,
+		CritMultiplier:       cat.critMultiplier,
 	}
 	cat.EnableAutoAttacks(cat, core.AutoAttackOptions{
 		MainHand:       basePaw,
@@ -93,9 +93,19 @@ type FeralDruid struct {
 	*druid.Druid
 
 	Rotation proto.FeralDruid_Rotation
+
+	readyToShift   bool
+	waitingForTick bool
+	critMultiplier float64
 }
 
 // GetDruid is to implement druid.Agent (supports nordrassil set bonus)
 func (cat *FeralDruid) GetDruid() *druid.Druid {
 	return cat.Druid
+}
+
+func (cat *FeralDruid) Reset(sim *core.Simulation) {
+	cat.Druid.Reset(sim)
+	cat.readyToShift = false
+	cat.waitingForTick = false
 }
